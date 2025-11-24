@@ -1,0 +1,4 @@
+#Yosys build script for Dog Battle FPGA Demo
+verilog_defaults -add -I /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/fpga_test//src
+read_verilog /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/fpga_test//src/fpga_top.v /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/fpga_test//src/hdmi_output.v /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/fpga_test//src/tmds_encoder.v /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/fpga_test//src/gowin_rpll_125_working.v /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/fpga_test//src/dogbattle_top_25mhz.v /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/src/game_core_v8.v /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/src/vga_timing.v
+synth_gowin -top fpga_top -json /home/jakobsen/work/asic/workspace/ttgf/tt_gf_dog_fight/fpga_test//obj/dogbattle_fpga.json

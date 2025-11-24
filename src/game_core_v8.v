@@ -26,7 +26,7 @@ module game_core_v8 #(
         if (!rst_n) begin
             // Dog 0 - only active one
             posx0 <= 10'd100;  posy0 <= 9'd100;
-            velx0 <= 10'sd256; vely0 <= 10'sd128;
+            velx0 <= 10'sd512; vely0 <= 10'sd384;  // Increased initial velocity
             hits0 <= 8'd0;     color_idx0 <= 3'd1;
             power_state0 <= 2'd0;
             
@@ -39,9 +39,9 @@ module game_core_v8 #(
             hits3 <= 8'd0; color_idx3 <= 3'd0; power_state3 <= 2'd0;
         end else begin
             if (frame_tick) begin
-                // Simple friction
-                velx0 <= (velx0 * 255) >>> 8;
-                vely0 <= (vely0 * 255) >>> 8;
+                // Simple friction (98% of velocity retained per frame)
+                velx0 <= (velx0 * 251) >>> 8;
+                vely0 <= (vely0 * 251) >>> 8;
                 
                 // Move dog 0
                 posx0 <= posx0 + (velx0 >>> 8);

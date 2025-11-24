@@ -1,0 +1,45 @@
+// Tang Nano 9K Pin Constraints for Dog Battle FPGA Demo
+
+// Onboard 27 MHz clock
+IO_LOC  "clk" 52;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+// Buttons (active low)
+IO_LOC  "btn_s1" 3;
+IO_PORT "btn_s1" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+
+IO_LOC  "btn_s2" 4;
+IO_PORT "btn_s2" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+
+// LEDs (active low)
+IO_LOC  "led0" 10;
+IO_PORT "led0" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+
+IO_LOC  "led1" 11;
+IO_PORT "led1" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+
+// HDMI TMDS Data Pairs
+IO_LOC  "tmds_d_p[0]" 71;
+IO_PORT "tmds_d_p[0]" DRIVE=8;
+
+IO_LOC  "tmds_d_n[0]" 70;
+IO_PORT "tmds_d_n[0]" DRIVE=8;
+
+IO_LOC  "tmds_d_p[1]" 73;
+IO_PORT "tmds_d_p[1]" DRIVE=8;
+
+IO_LOC  "tmds_d_n[1]" 72;
+IO_PORT "tmds_d_n[1]" DRIVE=8;
+
+IO_LOC  "tmds_d_p[2]" 75;
+IO_PORT "tmds_d_p[2]" DRIVE=8;
+
+IO_LOC  "tmds_d_n[2]" 74;
+IO_PORT "tmds_d_n[2]" DRIVE=8;
+
+// HDMI TMDS Clock Pair
+IO_LOC  "tmds_clk_p" 69;
+IO_PORT "tmds_clk_p" DRIVE=8;
+
+IO_LOC  "tmds_clk_n" 68;
+IO_PORT "tmds_clk_n" DRIVE=8;

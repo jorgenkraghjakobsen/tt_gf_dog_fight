@@ -10,7 +10,8 @@ module dogbattle_top_v8 (
     output wire vga_vs,
     output wire [2:0] vga_r,
     output wire [2:0] vga_g,
-    output wire [1:0] vga_b
+    output wire [1:0] vga_b,
+    output wire pix_clk_out  // expose pixel clock for FPGA testing
 );
 
     // divide-by-2 to get ~25MHz pixel clock
@@ -69,7 +70,14 @@ module dogbattle_top_v8 (
     reg [2:0] out_g;
     reg [1:0] out_b;
 
-    // Helper function: check if pixel inside box i
+    // Dog rendering results
+    wire [2:0] dog0_render, dog1_render, dog2_render, dog3_render;
+    assign dog0_render = render_dog(px, py, posx0, posy0);
+    assign dog1_render = render_dog(px, py, posx1, posy1);
+    assign dog2_render = render_dog(px, py, posx2, posy2);
+    assign dog3_render = render_dog(px, py, posx3, posy3);
+
+    // Helper function: check if pixel inside box i (bounding box)
     function inside_box;
         input [9:0] pxi;
         input [8:0] pyi;
@@ -77,6 +85,119 @@ module dogbattle_top_v8 (
         input [8:0] by;
         begin
             inside_box = (pxi >= bx) && (pxi < bx + BOX_W) && (pyi >= by) && (pyi < by + BOX_H);
+        end
+    endfunction
+
+    // Procedural dog rendering function
+    // Returns: {is_dog_pixel, is_outline, is_eye}
+    function [2:0] render_dog;
+        input [9:0] pxi;     // pixel x
+        input [8:0] pyi;     // pixel y
+        input [9:0] bx;      // box x position
+        input [8:0] by;      // box y position
+        reg [5:0] rel_x;     // relative x within box (0-47)
+        reg [4:0] rel_y;     // relative y within box (0-31)
+        reg is_body, is_head, is_leg, is_ear, is_eye, is_tail, is_outline;
+        reg [5:0] dx;
+        reg [4:0] dy;
+        begin
+            // Safety check - should only be called when inside bounding box
+            if (pxi < bx || pyi < by || pxi >= (bx + BOX_W) || pyi >= (by + BOX_H)) begin
+                render_dog = 3'b000;  // Not in dog
+            end else begin
+                // Calculate relative position within box
+                rel_x = pxi - bx;
+                rel_y = pyi - by;
+
+                // Initialize
+                is_body = 0;
+                is_head = 0;
+                is_leg = 0;
+                is_ear = 0;
+                is_eye = 0;
+                is_tail = 0;
+                is_outline = 0;
+
+                // Body (main rectangle) - center of sprite
+                // From x: 12-40, y: 8-24
+                if (rel_x >= 12 && rel_x < 40 && rel_y >= 8 && rel_y < 24) begin
+                    is_body = 1;
+                end
+
+                // Head (circle at front) - right side
+                // Center at (40, 16), radius ~8
+                dx = (rel_x > 40) ? (rel_x - 40) : (40 - rel_x);
+                dy = (rel_y > 16) ? (rel_y - 16) : (16 - rel_y);
+                if ((dx * dx + dy * dy) < 64) begin  // radius^2 = 64
+                    is_head = 1;
+                end
+
+                // Ears (triangular shapes on top of head)
+                // Left ear
+                if (rel_x >= 36 && rel_x < 40 && rel_y >= 8 && rel_y < 14) begin
+                    if ((rel_y - 8) < (40 - rel_x)) begin
+                        is_ear = 1;
+                    end
+                end
+                // Right ear
+                if (rel_x >= 40 && rel_x < 44 && rel_y >= 8 && rel_y < 14) begin
+                    if ((rel_y - 8) < (rel_x - 40)) begin
+                        is_ear = 1;
+                    end
+                end
+
+                // Eyes (two small dots)
+                // Left eye at (42, 14)
+                if (rel_x >= 41 && rel_x < 43 && rel_y >= 13 && rel_y < 15) begin
+                    is_eye = 1;
+                end
+
+                // Legs (4 small rectangles at bottom)
+                // Front left leg
+                if (rel_x >= 32 && rel_x < 36 && rel_y >= 24 && rel_y < 30) begin
+                    is_leg = 1;
+                end
+                // Front right leg
+                if (rel_x >= 38 && rel_x < 42 && rel_y >= 24 && rel_y < 30) begin
+                    is_leg = 1;
+                end
+                // Back left leg
+                if (rel_x >= 14 && rel_x < 18 && rel_y >= 24 && rel_y < 30) begin
+                    is_leg = 1;
+                end
+                // Back right leg
+                if (rel_x >= 20 && rel_x < 24 && rel_y >= 24 && rel_y < 30) begin
+                    is_leg = 1;
+                end
+
+                // Tail (curved shape at back/left)
+                // Simple tail: starts at back of body, curves up
+                if (rel_x >= 4 && rel_x < 12 && rel_y >= 6 && rel_y < 14) begin
+                    // Curved check: make it taper
+                    if ((rel_x - 4) + (rel_y - 6) < 10) begin
+                        is_tail = 1;
+                    end
+                end
+
+                // Outline detection - check edges of dog shapes
+                // Body outline
+                if (is_body && (rel_x == 12 || rel_x == 39 || rel_y == 8 || rel_y == 23)) begin
+                    is_outline = 1;
+                end
+                // Head outline - check perimeter of circle
+                if (is_head && (dx * dx + dy * dy) >= 49 && (dx * dx + dy * dy) < 64) begin
+                    is_outline = 1;
+                end
+                // Leg outlines
+                if (is_leg && ((rel_x == 32 || rel_x == 35 || rel_x == 38 || rel_x == 41 ||
+                               rel_x == 14 || rel_x == 17 || rel_x == 20 || rel_x == 23) ||
+                               (rel_y == 24 || rel_y == 29))) begin
+                    is_outline = 1;
+                end
+
+                // Return flags
+                render_dog = {(is_body || is_head || is_leg || is_ear || is_tail), is_outline, is_eye};
+            end
         end
     endfunction
 
@@ -105,26 +226,84 @@ module dogbattle_top_v8 (
                 out_g <= py[8:6];
                 out_b <= {px[6]^py[6], px[5]^py[5]};
 
-                // Draw all 8 boxes with priority
+                // Draw all dogs with procedural rendering
+                // Dog 0
                 if (inside_box(px, py, posx0, posy0)) begin
-                    out_r <= {col0[2], col0[2], col0[1]};
-                    out_g <= {col0[1], col0[1], col0[0]};
-                    out_b <= {col0[0], col0[1]};
+                    if (dog0_render[2]) begin  // is_dog_pixel
+                        if (dog0_render[0]) begin  // is_eye
+                            // Eyes are always black
+                            out_r <= 3'b000;
+                            out_g <= 3'b000;
+                            out_b <= 2'b00;
+                        end else if (dog0_render[1]) begin  // is_outline
+                            // Outline is darker version of main color
+                            out_r <= {1'b0, col0[2], col0[1]};
+                            out_g <= {1'b0, col0[1], col0[0]};
+                            out_b <= {1'b0, col0[0]};
+                        end else begin
+                            // Main dog color
+                            out_r <= {col0[2], col0[2], col0[1]};
+                            out_g <= {col0[1], col0[1], col0[0]};
+                            out_b <= {col0[0], col0[1]};
+                        end
+                    end
                 end
+
+                // Dog 1
                 if (inside_box(px, py, posx1, posy1)) begin
-                    out_r <= {col1[2], col1[2], col1[1]};
-                    out_g <= {col1[1], col1[1], col1[0]};
-                    out_b <= {col1[0], col1[1]};
+                    if (dog1_render[2]) begin
+                        if (dog1_render[0]) begin
+                            out_r <= 3'b000;
+                            out_g <= 3'b000;
+                            out_b <= 2'b00;
+                        end else if (dog1_render[1]) begin
+                            out_r <= {1'b0, col1[2], col1[1]};
+                            out_g <= {1'b0, col1[1], col1[0]};
+                            out_b <= {1'b0, col1[0]};
+                        end else begin
+                            out_r <= {col1[2], col1[2], col1[1]};
+                            out_g <= {col1[1], col1[1], col1[0]};
+                            out_b <= {col1[0], col1[1]};
+                        end
+                    end
                 end
+
+                // Dog 2
                 if (inside_box(px, py, posx2, posy2)) begin
-                    out_r <= {col2[2], col2[2], col2[1]};
-                    out_g <= {col2[1], col2[1], col2[0]};
-                    out_b <= {col2[0], col2[1]};
+                    if (dog2_render[2]) begin
+                        if (dog2_render[0]) begin
+                            out_r <= 3'b000;
+                            out_g <= 3'b000;
+                            out_b <= 2'b00;
+                        end else if (dog2_render[1]) begin
+                            out_r <= {1'b0, col2[2], col2[1]};
+                            out_g <= {1'b0, col2[1], col2[0]};
+                            out_b <= {1'b0, col2[0]};
+                        end else begin
+                            out_r <= {col2[2], col2[2], col2[1]};
+                            out_g <= {col2[1], col2[1], col2[0]};
+                            out_b <= {col2[0], col2[1]};
+                        end
+                    end
                 end
+
+                // Dog 3
                 if (inside_box(px, py, posx3, posy3)) begin
-                    out_r <= {col3[2], col3[2], col3[1]};
-                    out_g <= {col3[1], col3[1], col3[0]};
-                    out_b <= {col3[0], col3[1]};
+                    if (dog3_render[2]) begin
+                        if (dog3_render[0]) begin
+                            out_r <= 3'b000;
+                            out_g <= 3'b000;
+                            out_b <= 2'b00;
+                        end else if (dog3_render[1]) begin
+                            out_r <= {1'b0, col3[2], col3[1]};
+                            out_g <= {1'b0, col3[1], col3[0]};
+                            out_b <= {1'b0, col3[0]};
+                        end else begin
+                            out_r <= {col3[2], col3[2], col3[1]};
+                            out_g <= {col3[1], col3[1], col3[0]};
+                            out_b <= {col3[0], col3[1]};
+                        end
+                    end
                 end
 
                 // Draw hit bars above each dog (red bars)
@@ -155,5 +334,6 @@ module dogbattle_top_v8 (
     assign vga_r = out_r;
     assign vga_g = out_g;
     assign vga_b = out_b;
+    assign pix_clk_out = pix_clk;  // expose internal pixel clock
 
 endmodule
