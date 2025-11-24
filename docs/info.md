@@ -24,10 +24,14 @@ The game runs continuously, updating positions once per frame (60 FPS) with real
 Connect a VGA monitor to the output pins. The game will start automatically on power-up and run continuously.
 
 Output pin mapping:
-- Pins 0-1: VGA sync signals (HS, VS)
-- Pins 2-3: VGA blue (2 bits)
-- Pins 4-5: VGA green (2 bits MSB)
-- Pins 6-7: VGA red (2 bits MSB)
+- uo_out[0] - R1
+- uo_out[1] - G1
+- uo_out[2] - B1
+- uo_out[3] - vsync
+- uo_out[4] - R0
+- uo_out[5] - G0
+- uo_out[6] - B0
+- uo_out[7] - hsync
 
 ## External hardware
 

@@ -36,14 +36,14 @@ pinout:
   ui[7]: ""
 
   # Outputs
-  uo[0]: "vga_vs"       # VGA vertical sync
-  uo[1]: "vga_hs"       # VGA horizontal sync  
-  uo[2]: "vga_b0"       # VGA blue bit 0
-  uo[3]: "vga_b1"       # VGA blue bit 1
-  uo[4]: "vga_g1"       # VGA green bit 1 (MSB)
-  uo[5]: "vga_g2"       # VGA green bit 2 
-  uo[6]: "vga_r1"       # VGA red bit 1 (MSB)
-  uo[7]: "vga_r2"       # VGA red bit 2
+  uo[0]: "vga_r[1]"   
+  uo[1]: "vga_g[1]"   
+  uo[2]: "vga_b[1]"     
+  uo[3]: "vga_vs"     
+  uo[4]: "vga_r[0]"     
+  uo[5]: "vga_g[0]"     
+  uo[6]: "vga_b[0]"     
+  uo[7]: "vga_hs"     
   
   # Bidirectional pins
   uio[0]: ""
