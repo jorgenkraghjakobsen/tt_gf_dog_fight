@@ -1,6 +1,7 @@
 // vga_timing.v
 // 640x480 @60Hz timing generator. Pixel clock input should be ~25 MHz.
-`timescale 1ns/1ps
+//`timescale 1ns/1ps
+
 module vga_timing (
     input  wire clk,      // pixel clock (~25 MHz)
     input  wire rst_n,

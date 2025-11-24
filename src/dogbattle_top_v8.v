@@ -1,7 +1,7 @@
 // dogbattle_top_v8.v
 // Top-level for 8-dog battle with VGA output
 // Divides 50MHz -> 25MHz for VGA timing
-`timescale 1ns/1ps
+//`timescale 1ns/1ps
 
 module dogbattle_top_v8 (
     input  wire clk50,    // external 50 MHz clock

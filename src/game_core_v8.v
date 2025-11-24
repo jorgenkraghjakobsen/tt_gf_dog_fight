@@ -1,5 +1,5 @@
 // game_core_v8.v - Ultra-minimal 1 dog version for synthesis
-`timescale 1ns/1ps
+//`timescale 1ns/1ps
 
 module game_core_v8 #(
     parameter SCREEN_W = 640,
