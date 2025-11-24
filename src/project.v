@@ -19,8 +19,8 @@ module tt_um_SophusAndreassen_dogbattle (
 );
 
   // Instantiate dogbattle_top_v8 (VGA output with 8-dog game engine)
-  wire [1:0] vga_r;     // Only 2 bits
-  wire [1:0] vga_g;     // Only 2 bits 
+  wire [2:0] vga_r;     // Only 2 bits
+  wire [2:0] vga_g;     // Only 2 bits 
   wire [1:0] vga_b;
   wire vga_hs;
   wire vga_vs;
@@ -38,12 +38,12 @@ module tt_um_SophusAndreassen_dogbattle (
   // Map VGA outputs to TinyTapeout pins (8 outputs available)
   // uo[7:0] = {vga_r[1:0], vga_g[1:0], vga_b[1:0], vga_hs, vga_vs}
   //assign uo_out = {vga_r[2:1], vga_g[2:1], vga_b[1:0], vga_hs, vga_vs};
-  // Map to Tiny tapeout VGA PMOD
+  // Map to Tiny tapeout VGA PMOD  https://tinytapeout.com/specs/pinouts/
   assign uo_out  = {vga_hs, vga_b[0], vga_g[0], vga_r[0], vga_vs, vga_b[1], vga_g[1], vga_r[1]};   
   assign uio_out = 0;
   assign uio_oe  = 0;
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, ui_in, uio_in, 1'b0};
+  wire _unused = &{ena, ui_in, uio_in, vga_r[2],vga_g[2],1'b0};
 
 endmodule
