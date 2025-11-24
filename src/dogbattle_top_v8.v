@@ -70,13 +70,6 @@ module dogbattle_top_v8 (
     reg [2:0] out_g;
     reg [1:0] out_b;
 
-    // Dog rendering results
-    wire [2:0] dog0_render, dog1_render, dog2_render, dog3_render;
-    assign dog0_render = render_dog(px, py, posx0, posy0);
-    assign dog1_render = render_dog(px, py, posx1, posy1);
-    assign dog2_render = render_dog(px, py, posx2, posy2);
-    assign dog3_render = render_dog(px, py, posx3, posy3);
-
     // Helper function: check if pixel inside box i (bounding box)
     function inside_box;
         input [9:0] pxi;
@@ -226,84 +219,38 @@ module dogbattle_top_v8 (
                 out_g <= py[8:6];
                 out_b <= {px[6]^py[6], px[5]^py[5]};
 
-                // Draw all dogs with procedural rendering
+                // Draw all dogs - TEST: Draw with a hole/pattern
                 // Dog 0
                 if (inside_box(px, py, posx0, posy0)) begin
-                    if (dog0_render[2]) begin  // is_dog_pixel
-                        if (dog0_render[0]) begin  // is_eye
-                            // Eyes are always black
-                            out_r <= 3'b000;
-                            out_g <= 3'b000;
-                            out_b <= 2'b00;
-                        end else if (dog0_render[1]) begin  // is_outline
-                            // Outline is darker version of main color
-                            out_r <= {1'b0, col0[2], col0[1]};
-                            out_g <= {1'b0, col0[1], col0[0]};
-                            out_b <= {1'b0, col0[0]};
-                        end else begin
-                            // Main dog color
-                            out_r <= {col0[2], col0[2], col0[1]};
-                            out_g <= {col0[1], col0[1], col0[0]};
-                            out_b <= {col0[0], col0[1]};
-                        end
+                    // Test pattern: alternate every 4 pixels to create stripes
+                    if (px[2] == 1'b0) begin
+                        // Draw with dog color
+                        out_r <= {col0[2], col0[2], col0[1]};
+                        out_g <= {col0[1], col0[1], col0[0]};
+                        out_b <= {col0[0], col0[1]};
                     end
+                    // else: background shows through (holes in the pattern)
                 end
 
                 // Dog 1
                 if (inside_box(px, py, posx1, posy1)) begin
-                    if (dog1_render[2]) begin
-                        if (dog1_render[0]) begin
-                            out_r <= 3'b000;
-                            out_g <= 3'b000;
-                            out_b <= 2'b00;
-                        end else if (dog1_render[1]) begin
-                            out_r <= {1'b0, col1[2], col1[1]};
-                            out_g <= {1'b0, col1[1], col1[0]};
-                            out_b <= {1'b0, col1[0]};
-                        end else begin
-                            out_r <= {col1[2], col1[2], col1[1]};
-                            out_g <= {col1[1], col1[1], col1[0]};
-                            out_b <= {col1[0], col1[1]};
-                        end
-                    end
+                    out_r <= {col1[2], col1[2], col1[1]};
+                    out_g <= {col1[1], col1[1], col1[0]};
+                    out_b <= {col1[0], col1[1]};
                 end
 
                 // Dog 2
                 if (inside_box(px, py, posx2, posy2)) begin
-                    if (dog2_render[2]) begin
-                        if (dog2_render[0]) begin
-                            out_r <= 3'b000;
-                            out_g <= 3'b000;
-                            out_b <= 2'b00;
-                        end else if (dog2_render[1]) begin
-                            out_r <= {1'b0, col2[2], col2[1]};
-                            out_g <= {1'b0, col2[1], col2[0]};
-                            out_b <= {1'b0, col2[0]};
-                        end else begin
-                            out_r <= {col2[2], col2[2], col2[1]};
-                            out_g <= {col2[1], col2[1], col2[0]};
-                            out_b <= {col2[0], col2[1]};
-                        end
-                    end
+                    out_r <= {col2[2], col2[2], col2[1]};
+                    out_g <= {col2[1], col2[1], col2[0]};
+                    out_b <= {col2[0], col2[1]};
                 end
 
                 // Dog 3
                 if (inside_box(px, py, posx3, posy3)) begin
-                    if (dog3_render[2]) begin
-                        if (dog3_render[0]) begin
-                            out_r <= 3'b000;
-                            out_g <= 3'b000;
-                            out_b <= 2'b00;
-                        end else if (dog3_render[1]) begin
-                            out_r <= {1'b0, col3[2], col3[1]};
-                            out_g <= {1'b0, col3[1], col3[0]};
-                            out_b <= {1'b0, col3[0]};
-                        end else begin
-                            out_r <= {col3[2], col3[2], col3[1]};
-                            out_g <= {col3[1], col3[1], col3[0]};
-                            out_b <= {col3[0], col3[1]};
-                        end
-                    end
+                    out_r <= {col3[2], col3[2], col3[1]};
+                    out_g <= {col3[1], col3[1], col3[0]};
+                    out_b <= {col3[0], col3[1]};
                 end
 
                 // Draw hit bars above each dog (red bars)
