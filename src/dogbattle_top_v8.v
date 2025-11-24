@@ -70,6 +70,47 @@ module dogbattle_top_v8 (
     reg [2:0] out_g;
     reg [1:0] out_b;
 
+    // Dog sprite rendering
+    wire [5:0] rel_x0;
+    wire [4:0] rel_y0;
+    wire [3:0] dog_row0, dog_col0;
+    reg [15:0] dog_bitmap0;
+    wire dog_pixel0;
+
+    assign rel_x0 = px - posx0;
+    assign rel_y0 = py - posy0;
+    assign dog_col0 = (rel_x0 >= 16 && rel_x0 < 32) ? (rel_x0 - 16) : 4'd0;
+    assign dog_row0 = (rel_y0 >= 8 && rel_y0 < 24) ? (rel_y0 - 8) : 4'd0;
+
+    // Dog bitmap lookup
+    always @(*) begin
+        case (dog_row0)
+            // Ears and head top
+            4'd0:  dog_bitmap0 = 16'b0011000000110000;
+            4'd1:  dog_bitmap0 = 16'b0011000000110000;
+            4'd2:  dog_bitmap0 = 16'b0111111111110000;
+            4'd3:  dog_bitmap0 = 16'b0111111111110000;
+            // Head with eye
+            4'd4:  dog_bitmap0 = 16'b0111101111110000;
+            4'd5:  dog_bitmap0 = 16'b0111111111110000;
+            // Body
+            4'd6:  dog_bitmap0 = 16'b0111111111111100;
+            4'd7:  dog_bitmap0 = 16'b0111111111111110;
+            4'd8:  dog_bitmap0 = 16'b1111111111111110;
+            4'd9:  dog_bitmap0 = 16'b1111111111111100;
+            4'd10: dog_bitmap0 = 16'b1111111111110000;
+            4'd11: dog_bitmap0 = 16'b0111111111000000;
+            // Legs
+            4'd12: dog_bitmap0 = 16'b0110011001100000;
+            4'd13: dog_bitmap0 = 16'b0110011001100000;
+            4'd14: dog_bitmap0 = 16'b0110011001100000;
+            4'd15: dog_bitmap0 = 16'b0110011001100000;
+            default: dog_bitmap0 = 16'b0000000000000000;
+        endcase
+    end
+
+    assign dog_pixel0 = dog_bitmap0[15 - dog_col0];
+
     // Helper function: check if pixel inside box i (bounding box)
     function inside_box;
         input [9:0] pxi;
@@ -219,17 +260,12 @@ module dogbattle_top_v8 (
                 out_g <= py[8:6];
                 out_b <= {px[6]^py[6], px[5]^py[5]};
 
-                // Draw all dogs - TEST: Draw with a hole/pattern
+                // Draw all dogs - simple filled box for now
                 // Dog 0
                 if (inside_box(px, py, posx0, posy0)) begin
-                    // Test pattern: alternate every 4 pixels to create stripes
-                    if (px[2] == 1'b0) begin
-                        // Draw with dog color
-                        out_r <= {col0[2], col0[2], col0[1]};
-                        out_g <= {col0[1], col0[1], col0[0]};
-                        out_b <= {col0[0], col0[1]};
-                    end
-                    // else: background shows through (holes in the pattern)
+                    out_r <= {col0[2], col0[2], col0[1]};
+                    out_g <= {col0[1], col0[1], col0[0]};
+                    out_b <= {col0[0], col0[1]};
                 end
 
                 // Dog 1
